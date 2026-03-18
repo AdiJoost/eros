@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 
-from src.coder import chat
 from src.eros import generate_date
+
 
 def main():
     load_dotenv()
