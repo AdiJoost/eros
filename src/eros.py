@@ -11,10 +11,11 @@ from opentelemetry.sdk.trace.export import (BatchSpanProcessor,
 
 from src.llm.agents.creative_bot import CreativeBot
 from src.llm.agents.internet_searcher import InternetSearcher
+from src.llm.agents.planner import PlannerAgent
+from src.llm.agents.validator_bot import ValidatorBot
 from src.llm.gates.ollama_gate import OllamaGateFactory
 from src.utilities.telemetry.telemetry import Telemetry
 from src.utilities.telemetry.trace_provider import TraceProvider
-
 
 def generate_date():
     tracer_provider = TraceProvider.set_trace_provider()
@@ -30,31 +31,40 @@ def generate_date():
         tracer_provider=tracer_provider
     ).build()
 
-    creative_agent_2 = CreativeBot(
+    validatorbot = ValidatorBot(
         llm_config=ollama_config,
-        name="CreativeBot2",
+        name="ValidatorBot",
         tracer_provider=tracer_provider
     ).build()
 
     internet_searcher_agent = InternetSearcher(
         llm_config=ollama_config,
+        name="InternetBot",
         tracer_provider=tracer_provider
     ).build()
 
+    user_proxy = UserProxyAgent(
+        name="user",
+        human_input_mode="ALWAYS",
+        max_consecutive_auto_reply=5,
+    )
+
+    planner = PlannerAgent(
+        llm_config=ollama_config,
+        agent_names= ["CreativeBot1", "ValidatorBot", "user", "InternetBot"],
+        name="PlannerBot",
+        tracer_provider=tracer_provider
+    )
+
     groupchat = GroupChat(
-    agents=[creative_agent, creative_agent_2, internet_searcher_agent],
+    agents=[validatorbot, internet_searcher_agent, creative_agent, user_proxy],
     messages=[],
-    max_round=10,
-    speaker_selection_method="auto",
+    max_round=20,
+    speaker_selection_method=planner.planner_selection,
     )
     manager = GroupChatManager(groupchat=groupchat, llm_config=ollama_config)
 
-    user_proxy = UserProxyAgent(
-        name="user",
-        human_input_mode="NEVER",
-        max_consecutive_auto_reply=5,
-    )
     user_proxy.initiate_chat(
         manager,
-        message="Generate 3 thoughtful date ideas for Monday evening into Tuesday morning."
+        message="Im with my girlfriend in Chur from Monday evening until tuesday evening. We can sleep at my flat."
     )
