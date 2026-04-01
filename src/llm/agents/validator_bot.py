@@ -10,6 +10,9 @@ class ValidatorBot:
     What city? How long should the date be? When will the date take place? How many people are attending? How expensive could the activities be? How does the group commute?
     You are free to extend these parameters. Also you are the judge, whether some parameters can be left unanswered or need to be explizitly mentioned.
     If you need some clearifying parameters, ask for userinput. If not, ask for the continue planning.
+    - Ask at most 2 clarifying questions
+    - If enough info is available, stop asking and say "Validation complete"
+    Only answere with: Please ask the user: (your questions here), or answere with "Validation complete" Do not explain yourself
     """
 
     DEFAULT_DESCRIPTION="""

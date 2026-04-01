@@ -1,21 +1,19 @@
+
 from autogen import ConversableAgent, LLMConfig
 from autogen.opentelemetry import instrument_agent
 from autogen.tools.experimental import SearxngSearchTool
+from autogen import ConversableAgent, LLMConfig
 
 
-class InternetSearcher:
-
-    DEFAULT_SYSTEM_MESSAGE="""
-    You are an helpful assistant that is tasked with searching the internet for information about possible date activities such as restaurants, events, and entertainment options. Based on the messages above and the request of the other agents, think about what you want to research in the internet.
-    """
+class ToolExecutor:
 
     DEFAULT_DESCRIPTION="""
-    The InternetBot can research activities in the city or nearby depending on what the parameters for the date are.
+    This Agent is only there for executing tool calls.
     """
 
-    def __init__(self, llm_config: LLMConfig, name: str=None, system_message: str=None, tracer_provider=None, description: str=None):
+    def __init__(self, llm_config: LLMConfig, name: str=None, tracer_provider=None, description: str=None):
         self.llm_config = llm_config
-        self._system_message= system_message if system_message else self.DEFAULT_SYSTEM_MESSAGE
+        self._system_message= ""
         self._name = name if name else str(self.__class__)
         self._tracer_provider = tracer_provider
         self._description = description if description else self.DEFAULT_DESCRIPTION
