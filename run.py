@@ -1,12 +1,14 @@
+import asyncio
+
 from dotenv import load_dotenv
 
-from src.eros import generate_date
+from src.ait_changer import generate_date, generate_ne_names
 
 
-def main():
+async def main():
     load_dotenv()
-    generate_date()
+    await generate_ne_names()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

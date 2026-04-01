@@ -7,37 +7,14 @@ from autogen.opentelemetry import instrument_agent
 from src.llm.agents.tool_registry import ToolExecutor
 
 
-class PlannerAgent():
+class AITPlannerAgent():
 
     DEFAULT_SYSTEM_MESSAGE="""
         You are a planner that orchestrates a group of agents.
 
         Available agents:
-        - validatorbot: validates input and asks clarifying questions
         - user: answers questions
-        - creative_agent: creates activity ideas
-        - internet_searcher_agent: provides real-world info
-
-        Rules:
-        1. The validatorbot may ONLY be used immediately after the user's FIRST message.
-        2. If the validatorbot answeres once with "Validation complete", never use that bot again.
-        3. If the last message was a question, use the user.
-        4. Do not use the user, if the user was in the last message.
-        4. After the validatorbot:
-        - If it asks a question → choose the user next.
-        - If it does NOT ask a question → proceed to creative_agent.
-        5. The validatorbot must NOT be used again after this initial validation step.
-        6. After validation is complete, focus on collaboration between:
-        - creative_agent
-        - internet_searcher_agent
-        7. The internet_searcher_agent is the only agent allowed to use tools.
-        8. If someone suggests a toolcall, use the internet_searcher_agent
-
-        Goal:
-        - Perform a brief validation at the start
-        - Then quickly transition into idea generation and information gathering
-
-        At each step, choose EXACTLY one next speaker by name.
+        - creative_agent: can select tools to call
         """
     
     DEFAULT_DESCRIPTION="""
@@ -75,7 +52,7 @@ class PlannerAgent():
         return planner
 
     def extract_tool_calls(self, message: dict):
-        return (type(message) == dict and message.get("tool_calls"))
+        return (isinstance(message, dict) and message.get("tool_calls"))
         
     def _planner_selection(self, last_speaker, groupchat):
         messages = groupchat.messages.copy()
@@ -126,34 +103,25 @@ class PlannerAgent():
             print("Toolcall detected")
             return self.tool_executor 
         
-        if (self.validation_done):
+        messages.append({
+            "role": "system",
+            "content": self._guardrail
+        })
 
-            messages.append({
-                            "role": "system",
-                            "content": "Validation is completed"
-                        })
-            messages.append({
-                "role": "system",
-                "content": self._guardrail
-            })
-            response = self._assistant.generate_reply(
-                messages=messages,
-                sender=None
-            )
-            print(f"Planner Response: {response}")
-            if isinstance(response, dict):
-                next_speaker_name = response.get("content", "").strip().lower()
-            else:
-                next_speaker_name = str(response).strip().lower()
+        response = self._assistant.generate_reply(
+            messages=messages,
+            sender=None
+        )
 
-            next_agent = self.findAgentByName(next_speaker_name, groupchat)
-            return next_agent if next_agent and not self.isValidatorBot(next_speaker_name) else self.findAgentByName("creative_agent")
-        
-        if(self.isValidatorBot(last_speaker.name)):
-            return self.findAgentByName("user", groupchat)
-        
+        print(f"Planner Response: {response}")
 
-        return self.findAgentByName("creative_agent", groupchat)
+        if isinstance(response, dict):
+            next_speaker_name = response.get("content", "").strip().lower()
+        else:
+            next_speaker_name = str(response).strip().lower()
+
+        next_agent = self.findAgentByName(next_speaker_name, groupchat)
+        return next_agent if next_agent else self.findAgentByName("creative_agent", groupchat)
     
     def isValidatorBot(self, name):
         return name.strip().lower() == "validatorbot"

@@ -2,7 +2,6 @@
 from autogen import ConversableAgent, LLMConfig
 from autogen.opentelemetry import instrument_agent
 from autogen.tools.experimental import SearxngSearchTool
-from autogen import ConversableAgent, LLMConfig
 
 
 class ToolExecutor:
@@ -24,8 +23,6 @@ class ToolExecutor:
             system_message=self._system_message,
             llm_config=self.llm_config,
         )
-        search_tool = SearxngSearchTool()
-        search_tool.register_tool(internet_searcher_agent)
         if self._tracer_provider:
             instrument_agent(internet_searcher_agent, tracer_provider=self._tracer_provider)
         return internet_searcher_agent
