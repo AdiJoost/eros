@@ -79,7 +79,7 @@ echo "All models ready."
 # ---- PRINT TUNNEL INFO ----
 echo ""
 echo "To connect from your laptop:"
-echo "ssh -L $PORT:$(hostname):$PORT $USER@<login-node>"
+echo "ssh -L $PORT:$(hostname):$PORT $USER@nickel.fhgr.ch -t ssh nickel.fhgr.ch"
 echo ""
 echo "Then use:"
 echo "export OLLAMA_HOST=http://localhost:$PORT"
