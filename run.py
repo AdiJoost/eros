@@ -7,7 +7,7 @@ from src.ait_changer import generate_date, generate_ne_names
 
 async def main():
     load_dotenv()
-    await generate_ne_names()
+    await generate_date()
 
 
 if __name__ == "__main__":

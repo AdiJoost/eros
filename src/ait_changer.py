@@ -19,33 +19,38 @@ from src.llm.agents.planner import PlannerAgent
 from src.llm.agents.tool_registry import ToolExecutor
 from src.llm.agents.validator_bot import ValidatorBot
 from src.llm.gates.ollama_gate import OllamaGateFactory
+from src.llm.prompts.creative_agent_html_description import (
+    html_description, thinker_bot_system_message)
+from src.llm.prompts.testcase import miniscule_testcase
 from src.utilities.mcp.mcp_toolkit import MCPToolkit
 from src.utilities.telemetry.telemetry import Telemetry
 from src.utilities.telemetry.trace_provider import TraceProvider
 
 
 async def generate_date():
+    ollama_config = OllamaGateFactory(
+            model_name="llama3.1:8b"
+        ).build()
     async with (streamable_http_client("http://127.0.0.1:8000/mcp") as (read, write, _), ClientSession(read, write) as session,):
         await session.initialize()
         #tracer_provider = TraceProvider.set_trace_provider()
         #Telemetry.setup(tracer_provider=tracer_provider, capture_messages=True)
         print(await session.call_tool("get_name", {"text": "MCP"}))
-        ollama_config = OllamaGateFactory(
-            model_name="llama3.1:8b"
-        ).build()
+        
 
-        toolkit = await MCPToolkit().get_toolkit()
+        toolkit = await create_toolkit(session=session, use_mcp_resources=False)
 
         creative_agent = CreativeBot(
             llm_config=ollama_config,
-            name="creative_agent"
+            name="creative_agent",
+            system_message=f"{thinker_bot_system_message}{html_description}"
         ).build()
 
         user_proxy = UserProxyAgent(
             name="user",
-            human_input_mode="ALWAYS",
-            max_consecutive_auto_reply=1,
-            code_execution_config={"use_docker": False},
+            human_input_mode="NEVER",
+            max_consecutive_auto_reply=0,
+            code_execution_config=False,
         )
 
         tool_executor = ToolExecutor(
@@ -73,7 +78,9 @@ async def generate_date():
 
         await user_proxy.a_initiate_chat(
             manager,
-            message="What is the Name of him? Use the MCP tools to find out the name."
+            message=f"You have a testcase with the following testsections {miniscule_testcase}. " +
+                    "Change the name of the first two sections to section 1 and section 2. " +
+                    "Then tell me what they are called now. Use the MCP_tools for renaming",
         )
 
 async def generate_ne_names():
@@ -122,7 +129,8 @@ async def generate_ne_names():
                     "title": "(DescriptionBody)",
                     "titleType": "STANDARD",
                     "parameters": { "parameters": [], "rows": [] }
-                },"""
+                },
+                ]"""
 
         result = await creative_agent.a_run(
             message=f"You have a testcase with the following testsections {test_section}. Change the name of both sections to section 1 and section 2. Then tell me what they are called now. Use the MCP_tools for renaming",
