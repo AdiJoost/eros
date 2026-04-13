@@ -116,7 +116,7 @@ async def generate_date():
             manager,
             message=f"You have a testcase with the following testsections {miniscule_testcase}. " +
                     "Change the name of the first two sections to section 1 and section 2. " +
-                    "Then tell me what they are called now. Use the MCP_tools for renaming",
+                    "Use the tools given to create a tasklist first.",
         )
 
 async def generate_ne_names():
