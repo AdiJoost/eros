@@ -26,7 +26,7 @@ def generate_date():
     Telemetry.setup(tracer_provider=tracer_provider, capture_messages=True)
     
     ollama_config = OllamaGateFactory(
-        model_name="llama3.1:8b"
+        model_name="qwen3.5:35b"
     ).build()
 
     anthropic_config = AnthropicGateFactory().build()
@@ -64,7 +64,7 @@ def generate_date():
 
     duckduckgo_search_tool = DuckDuckGoSearchTool()
     browserUseTool=BrowserUseTool(
-        llm_config=anthropic_config)
+        llm_config=ollama_config)
     browserUseTool.register_for_llm(web_researcher)
     browserUseTool.register_for_execution(tool_executor)
 

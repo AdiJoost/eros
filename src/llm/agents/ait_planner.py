@@ -52,7 +52,19 @@ class AITPlannerAgent():
         return planner
 
     def extract_tool_calls(self, message: dict):
-        return (isinstance(message, dict) and message.get("tool_calls"))
+        if not isinstance(message, dict):
+            return None
+        
+        tool_calls = message.get("tool_calls")
+        
+        # Debug: Log the message structure to understand what's being returned
+        print(f"DEBUG - Message keys: {message.keys()}")
+        print(f"DEBUG - Message content: {message.get('content', '')}")
+        print(f"DEBUG - Tool calls found: {tool_calls}")
+        if message.get("content"):
+            print(f"DEBUG - Content length: {len(message.get('content', ''))}")
+        
+        return tool_calls
         
     def _planner_selection(self, last_speaker, groupchat):
         messages = groupchat.messages.copy()
@@ -94,14 +106,27 @@ class AITPlannerAgent():
         messages = groupchat.messages.copy()
 
         last_message = groupchat.messages[-1]
+        
+        # Debug log
+        print(f"\n=== PLANNER SELECTION DEBUG ===")
+        print(f"Last speaker: {last_speaker}")
+        print(f"Last message role: {last_message.get('role', 'N/A')}")
+        print(f"Last message content: '{last_message.get('content', '')}'")
+        print(f"Last message keys: {last_message.keys()}")
+        
         if "Validation complete" in last_message.get("content", ""):
             self.validation_done = True
 
         tool_calls = self.extract_tool_calls(last_message)
 
         if tool_calls:
-            print("Toolcall detected")
-            return self.tool_executor 
+            print("✓ Toolcall detected - routing to tool_executor")
+            return self.tool_executor
+        
+        # If message is empty but has tool_calls structure, also route to tool_executor
+        if (last_message.get("content", "").strip() == "" or not last_message.get("content")) and last_message.get("tool_calls"):
+            print("✓ Empty content with tool_calls detected - routing to tool_executor")
+            return self.tool_executor
         
         messages.append({
             "role": "system",
