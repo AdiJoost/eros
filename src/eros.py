@@ -26,7 +26,7 @@ def generate_date():
     Telemetry.setup(tracer_provider=tracer_provider, capture_messages=True)
     
     ollama_config = OllamaGateFactory(
-        model_name="qwen3.5:35b"
+        model_name="qwen3.5:122b"
     ).build()
 
     anthropic_config = AnthropicGateFactory().build()

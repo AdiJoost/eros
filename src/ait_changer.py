@@ -27,33 +27,18 @@ from src.utilities.telemetry.telemetry import Telemetry
 from src.utilities.telemetry.trace_provider import TraceProvider
 
 
-async def generate_date():
+async def tryin():
     ollama_config = OllamaGateFactory(
-            model_name="qwen3.5:122b"
+            model_name="gemma4:31b"
         ).build()
     async with (streamable_http_client("http://127.0.0.1:8000/mcp") as (read, write, _), ClientSession(read, write) as session,):
         await session.initialize()
         tracer_provider = TraceProvider.set_trace_provider()
         Telemetry.setup(tracer_provider=tracer_provider, capture_messages=True)
-        print(await session.call_tool("get_name", {"text": "MCP"}))
         
 
         toolkit = await create_toolkit(session=session, use_mcp_resources=False)
-
-        # DEBUG: Check what tools are in the toolkit
-        print(f"\n=== TOOLKIT DEBUG ===")
-        if hasattr(toolkit, 'tools'):
-            print(f"Toolkit has tools attribute: {len(toolkit.tools)} tools")
-            for tool in toolkit.tools:
-                print(f"  - Tool: {tool}")
-        else:
-            print("Toolkit has no 'tools' attribute")
         
-        # Try to see what's registered
-        print(f"Toolkit type: {type(toolkit)}")
-        print(f"Toolkit dir: {[x for x in dir(toolkit) if not x.startswith('_')]}")
-        print("=== END TOOLKIT DEBUG ===\n")
-
         creative_agent = CreativeBot(
             llm_config=ollama_config,
             name="creative_agent",
@@ -76,25 +61,6 @@ async def generate_date():
 
         toolkit.register_for_llm(creative_agent)
         toolkit.register_for_execution(tool_executor)
-
-        # DEBUG: Check the agent after registration
-        print(f"\n=== CREATIVE AGENT DEBUG AFTER REGISTRATION ===")
-        print(f"Agent name: {creative_agent.name}")
-        print(f"Agent llm_config: {creative_agent.llm_config}")
-        # Check if tools were injected into system message or llm_config
-        if hasattr(creative_agent, 'system_message'):
-            msg = creative_agent.system_message
-            if isinstance(msg, list):
-                print(f"System message is a list with {len(msg)} items")
-                for i, item in enumerate(msg):
-                    print(f"  Item {i}: {item.get('type', 'unknown')}")
-            else:
-                print(f"System message type: {type(msg)}")
-                print(f"System message (first 200 chars): {str(msg)[:200]}")
-        
-        if hasattr(creative_agent, '_tools'):
-            print(f"Agent has _tools: {creative_agent._tools}")
-        print("=== END CREATIVE AGENT DEBUG ===\n")
 
         planner = AITPlannerAgent(
             llm_config=ollama_config,

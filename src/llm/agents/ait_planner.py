@@ -107,13 +107,6 @@ class AITPlannerAgent():
 
         last_message = groupchat.messages[-1]
         
-        # Debug log
-        print(f"\n=== PLANNER SELECTION DEBUG ===")
-        print(f"Last speaker: {last_speaker}")
-        print(f"Last message role: {last_message.get('role', 'N/A')}")
-        print(f"Last message content: '{last_message.get('content', '')}'")
-        print(f"Last message keys: {last_message.keys()}")
-        
         if "Validation complete" in last_message.get("content", ""):
             self.validation_done = True
 
