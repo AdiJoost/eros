@@ -2,9 +2,9 @@
 #SBATCH -p students
 #SBATCH --job-name=ollama
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=64G
+#SBATCH --mem=110G
 #SBATCH --gres=gpu:2
-#SBATCH --time=10:00:00
+#SBATCH --time=03:00:00
 #SBATCH --output=ollama.out
 
 set -e
@@ -46,7 +46,9 @@ sleep 10
 model_exists() {
   local model="$1"
   apptainer exec \
+    --nv \
     --bind "$DATA_DIR:/root/.ollama" \
+    --env OLLAMA_HOST=$OLLAMA_HOST \
     "$SIF" \
     ollama list | grep -q "^$model"
 }
@@ -66,7 +68,9 @@ while read -r model || [ -n "$model" ]; do
   else
     echo "Pulling $model..."
     apptainer exec \
+      --nv \
       --bind "$DATA_DIR:/root/.ollama" \
+      --env OLLAMA_HOST=$OLLAMA_HOST \
       "$SIF" \
       ollama pull "$model"
   fi
