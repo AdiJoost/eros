@@ -47,5 +47,5 @@ async def update_testcase(user_prompt: str):
         )
         manager = GroupChatManager(groupchat=planning_chat, llm_config=ollama_config)
 
-        result = planner.initiate_chat(manager, message=user_prompt)
+        result = await planner.a_initiate_chat(manager, message=user_prompt)
         print(result)
